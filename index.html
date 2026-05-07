@@ -3,621 +3,411 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission Control</title>
+    <title>Mission Control — Tasks</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --bg-primary: #0a0a0b;
-            --bg-secondary: #111113;
-            --bg-tertiary: #18181b;
-            --bg-card: #1a1a1d;
-            --bg-hover: #222225;
+            --bg: #0a0a0b;
+            --card: #1a1a1d;
             --border: #27272a;
-            --border-light: #3f3f46;
-            --text-primary: #fafafa;
-            --text-secondary: #a1a1aa;
-            --text-muted: #71717a;
-            --accent-blue: #3b82f6;
-            --accent-green: #22c55e;
-            --accent-yellow: #eab308;
-            --accent-red: #ef4444;
-            --accent-purple: #a855f7;
-            --accent-orange: #f97316;
+            --text: #fafafa;
+            --muted: #71717a;
+            --backlog: #3f3f46;
+            --in-progress: #3b82f6;
+            --review: #f97316;
+            --blocked: #ef4444;
+            --done: #22c55e;
+            --high: #ef4444;
+            --medium: #f97316;
+            --low: #22c55e;
         }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            line-height: 1.5;
-        }
-        #password-overlay {
-            position: fixed; inset: 0;
-            background: var(--bg-primary);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 1000;
-        }
-        .password-box {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 40px;
-            text-align: center;
-            max-width: 380px;
-            width: 90%;
-        }
-        .password-box h2 { font-size: 1.5rem; margin-bottom: 8px; }
-        .password-box p { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 24px; }
-        .password-box input {
-            width: 100%; padding: 12px 16px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 1rem;
-            margin-bottom: 16px;
-            text-align: center;
-            letter-spacing: 4px;
-        }
-        .password-box input:focus { outline: none; border-color: var(--accent-blue); }
-        .password-box button {
-            width: 100%; padding: 12px 24px;
-            background: var(--accent-blue);
-            color: white; border: none;
-            border-radius: 8px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        .password-box button:hover { opacity: 0.9; }
-        .password-error { color: var(--accent-red); font-size: 0.875rem; margin-top: 12px; display: none; }
-        
-        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 32px; flex-wrap: wrap; gap: 16px;
-        }
-        .logo { display: flex; align-items: center; gap: 12px; }
-        .logo-icon {
-            width: 40px; height: 40px;
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.25rem;
-        }
-        .logo h1 { font-size: 1.5rem; font-weight: 600; }
-        .header-status { display: flex; align-items: center; gap: 12px; }
-        .connection-status {
-            display: flex; align-items: center; gap: 6px;
-            padding: 6px 12px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            font-size: 0.8rem; font-weight: 500;
-        }
-        .connection-status.live { border-color: var(--accent-green); color: var(--accent-green); }
-        .connection-status.disconnected { border-color: var(--accent-red); color: var(--accent-red); }
-        .connection-status.connecting { border-color: var(--accent-yellow); color: var(--accent-yellow); }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-        .connection-status.live .status-dot { animation: pulse 2s infinite; }
-        .last-updated { color: var(--text-muted); font-size: 0.875rem; }
-        .refresh-btn {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 8px 14px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .refresh-btn:hover { background: var(--bg-hover); border-color: var(--border-light); color: var(--text-primary); }
-        .refresh-btn:active { transform: scale(0.97); }
-        .refresh-btn.loading { pointer-events: none; opacity: 0.6; }
-        .refresh-btn .spinner { display: none; animation: spin 1s linear infinite; }
-        .refresh-btn.loading .spinner { display: inline; }
-        .refresh-btn.loading .icon { display: none; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
-        
-        .alert-banner {
-            background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(249,115,22,0.15));
-            border: 1px solid rgba(239,68,68,0.3);
-            border-radius: 12px;
-            padding: 20px 24px;
-            margin-bottom: 24px;
-        }
-        .alert-banner.empty { display: none; }
-        .alert-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-        .alert-header h2 { font-size: 1rem; font-weight: 600; color: var(--accent-orange); }
-        .alert-items { display: flex; flex-direction: column; gap: 12px; }
-        .alert-item {
-            display: flex; align-items: center; justify-content: space-between; gap: 16px;
-            padding: 12px 16px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-        }
-        .alert-item-content { display: flex; align-items: center; gap: 12px; }
-        .priority {
-            padding: 4px 8px; border-radius: 4px;
-            font-size: 0.75rem; font-weight: 500; text-transform: uppercase;
-        }
-        .priority.high { background: var(--accent-red); color: white; }
-        .priority.medium { background: var(--accent-orange); color: white; }
-        .priority.low { background: var(--accent-yellow); color: black; }
-        .alert-item a { color: var(--accent-blue); font-size: 0.875rem; text-decoration: none; }
-        .alert-item a:hover { text-decoration: underline; }
-        
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; margin-bottom: 24px; }
-        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
-        
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-        }
-        .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-        .card-header h2 { font-size: 1rem; font-weight: 600; color: var(--text-secondary); }
-        .card-header .icon { font-size: 1.125rem; }
-        
-        .active-task {
-            display: flex; align-items: center; gap: 12px;
-            padding: 14px 16px;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            margin-bottom: 8px;
-        }
-        .active-task:last-child { margin-bottom: 0; }
-        .active-indicator {
-            width: 10px; height: 10px;
-            background: var(--accent-green);
-            border-radius: 50%;
-            animation: pulse 1.5s infinite;
-        }
-        .active-task-info { flex: 1; }
-        .active-task-name { font-weight: 500; margin-bottom: 2px; }
-        .active-task-meta { font-size: 0.75rem; color: var(--text-muted); }
-        .empty-state {
-            color: var(--text-muted); font-size: 0.875rem;
-            padding: 20px; text-align: center;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-        }
-        
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
-        .product-card {
-            background: var(--bg-tertiary);
-            border-radius: 10px;
-            padding: 16px;
-            text-decoration: none;
-            color: inherit;
-            transition: all 0.2s;
-            border: 1px solid transparent;
-        }
-        .product-card:hover { background: var(--bg-hover); border-color: var(--border-light); }
-        .product-name { font-weight: 600; margin-bottom: 8px; font-size: 0.95rem; }
-        .product-status {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem; font-weight: 500;
-            margin-bottom: 8px;
-        }
-        .product-status.live { background: rgba(34,197,94,0.15); color: var(--accent-green); }
-        .product-status.testing { background: rgba(234,179,8,0.15); color: var(--accent-yellow); }
-        .product-status.down { background: rgba(239,68,68,0.15); color: var(--accent-red); }
-        .product-status .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-        .product-checked { font-size: 0.75rem; color: var(--text-muted); }
-        
-        .cron-table { width: 100%; }
-        .cron-row {
-            display: grid;
-            grid-template-columns: 1fr auto auto auto;
-            gap: 12px;
-            padding: 12px;
-            border-radius: 8px;
-            align-items: center;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .cron-row:hover { background: var(--bg-tertiary); }
-        .cron-row.has-error { background: rgba(239,68,68,0.08); }
-        .cron-name { font-weight: 500; font-size: 0.875rem; }
-        .cron-schedule { font-size: 0.75rem; color: var(--text-muted); }
-        .cron-status { font-size: 1rem; }
-        .cron-errors {
-            font-size: 0.75rem;
-            padding: 2px 8px;
-            border-radius: 10px;
-            background: rgba(239,68,68,0.2);
-            color: var(--accent-red);
-        }
-        .cron-error-detail {
-            display: none;
-            grid-column: 1 / -1;
-            padding: 12px;
-            background: rgba(239,68,68,0.1);
-            border-radius: 6px;
-            font-size: 0.8rem;
-            color: var(--accent-red);
-            margin-top: 8px;
-        }
-        .cron-row.expanded .cron-error-detail { display: block; }
-        
-        .activity-list { display: flex; flex-direction: column; gap: 2px; }
-        .activity-item {
-            display: flex; gap: 12px;
-            padding: 10px 12px;
-            border-radius: 6px;
-            transition: background 0.2s;
-        }
-        .activity-item:hover { background: var(--bg-tertiary); }
-        .activity-time { font-size: 0.75rem; color: var(--text-muted); min-width: 60px; }
-        .activity-event { font-size: 0.875rem; color: var(--text-secondary); }
-        
-        .stats-row { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
-        .stat-pill {
-            display: flex; align-items: center; gap: 8px;
-            padding: 8px 16px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            font-size: 0.875rem;
-        }
-        .stat-pill .num { font-weight: 600; }
-        .stat-pill .label { color: var(--text-muted); }
-        
-        @media (max-width: 600px) {
-            .container { padding: 16px; }
-            .card { padding: 20px; }
-            .cron-row { grid-template-columns: 1fr auto; }
-            .cron-schedule { display: none; }
-            .header-status { flex-direction: column; align-items: flex-end; gap: 8px; }
-        }
-        
-        @keyframes flash-update { 0% { background-color: rgba(34,197,94,0.2); } 100% { background-color: transparent; } }
-        .flash-update { animation: flash-update 1s ease-out; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+        header h1 { font-size: 18px; font-weight: 700; }
+        .live-dot { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+        .live-dot span { width: 8px; height: 8px; border-radius: 50%; background: var(--done); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .board { display: flex; gap: 16px; padding: 20px; overflow-x: auto; min-height: calc(100vh - 80px); }
+        .column { flex: 0 0 280px; background: var(--card); border-radius: 12px; display: flex; flex-direction: column; }
+        .col-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .col-header h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .col-count { background: var(--bg); padding: 2px 8px; border-radius: 10px; font-size: 11px; color: var(--muted); }
+        .col-badge { width: 8px; height: 8px; border-radius: 50%; }
+        .col-backlog .col-badge { background: var(--backlog); }
+        .col-in_progress .col-badge { background: var(--in-progress); }
+        .col-review .col-badge { background: var(--review); }
+        .col-blocked .col-badge { background: var(--blocked); }
+        .col-done .col-badge { background: var(--done); }
+        .cards { padding: 12px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-height: 100px; }
+        .card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; cursor: grab; transition: border-color 0.15s; }
+        .card:hover { border-color: var(--border-light, #3f3f46); }
+        .card.dragging { opacity: 0.5; }
+        .card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .priority { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+        .priority.high { background: rgba(239,68,68,0.2); color: var(--high); }
+        .priority.medium { background: rgba(249,115,22,0.2); color: var(--medium); }
+        .priority.low { background: rgba(34,197,00,0.2); color: var(--low); }
+        .card-id { font-size: 10px; color: var(--muted); }
+        .card-title { font-size: 13px; font-weight: 500; line-height: 1.4; margin-bottom: 6px; }
+        .card-desc { font-size: 12px; color: var(--muted); line-height: 1.4; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-footer { display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); }
+        .comment-count { display: flex; align-items: center; gap: 3px; cursor: pointer; }
+        .comment-count:hover { color: var(--text); }
+        .sortable-ghost { opacity: 0.3; }
+        .add-card { padding: 12px; border-top: 1px solid var(--border); }
+        .add-card-btn { width: 100%; padding: 10px; background: none; border: 1px dashed var(--border); border-radius: 8px; color: var(--muted); cursor: pointer; font-size: 13px; transition: all 0.15s; }
+        .add-card-btn:hover { border-color: var(--text); color: var(--text); }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+        .modal { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 100%; max-width: 480px; }
+        .modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 20px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; font-family: inherit; }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .btn { padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: opacity 0.15s; }
+        .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+        .btn-primary { background: var(--in-progress); color: white; }
+        .btn-danger { background: var(--blocked); color: white; }
+        .btn:hover { opacity: 0.85; }
+        .comments-section { border-top: 1px solid var(--border); margin-top: 12px; padding-top: 12px; }
+        .comment { margin-bottom: 12px; }
+        .comment-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .comment-author { font-size: 12px; font-weight: 600; }
+        .comment-time { font-size: 11px; color: var(--muted); }
+        .comment-body { font-size: 13px; color: var(--text); line-height: 1.5; padding-left: 28px; }
+        .comment-input-wrap { display: flex; gap: 8px; margin-top: 12px; }
+        .comment-input-wrap input { flex: 1; padding: 8px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 13px; }
+        .comment-input-wrap button { padding: 8px 14px; background: var(--in-progress); color: white; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; }
+        .empty-state { text-align: center; padding: 30px 20px; color: var(--muted); font-size: 12px; }
+        [hidden] { display: none !important; }
+        .updated-at { font-size: 11px; color: var(--muted); text-align: center; padding: 8px; }
     </style>
 </head>
 <body>
-    <!-- Password Protection -->
-    <div id="password-overlay">
-        <div class="password-box">
-            <h2>🔐 Mission Control</h2>
-            <p>Enter your PIN to access the dashboard</p>
-            <input type="password" id="pin-input" placeholder="••••••" maxlength="20" autofocus aria-label="PIN input">
-            <button onclick="checkPassword()">Access Dashboard</button>
-            <p class="password-error" id="password-error">Incorrect PIN. Try again.</p>
+<header>
+    <h1>📋 Task Board</h1>
+    <div class="live-dot"><span></span> <span id="live-label">Live</span></div>
+</header>
+
+<div class="board">
+    <div class="column col-backlog" data-status="backlog">
+        <div class="col-header">
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="col-badge"></div>
+                <h2>Backlog</h2>
+            </div>
+            <span class="col-count" id="count-backlog">0</span>
+        </div>
+        <div class="cards" id="cards-backlog"></div>
+        <div class="add-card">
+            <button class="add-card-btn" onclick="openAddModal('backlog')">+ Add task</button>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="container" id="main-content" style="display: none;">
-        <header>
-            <div class="logo">
-                <div class="logo-icon">🚀</div>
-                <h1>Mission Control</h1>
+    <div class="column col-in_progress" data-status="in_progress">
+        <div class="col-header">
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="col-badge"></div>
+                <h2>In Progress</h2>
             </div>
-            <div class="header-status">
-                <button class="refresh-btn" onclick="forceUpdate()" id="refresh-btn" aria-label="Force update">
-                    <span class="icon">🔄</span>
-                    <span class="spinner">⟳</span>
-                    Update
-                </button>
-                <div class="connection-status connecting" id="connection-status">
-                    <span class="status-dot"></span>
-                    <span id="connection-text">Connecting...</span>
-                </div>
-                <div class="last-updated" id="last-updated-text">Loading...</div>
-            </div>
-        </header>
-
-        <div class="alert-banner" id="action-required">
-            <div class="alert-header">
-                <span>🚨</span>
-                <h2>Action Required</h2>
-            </div>
-            <div class="alert-items" id="action-items"></div>
+            <span class="col-count" id="count-in_progress">0</span>
         </div>
-
-        <div class="stats-row" id="stats-row"></div>
-
-        <div class="grid">
-            <div class="card">
-                <div class="card-header">
-                    <span class="icon">⚡</span>
-                    <h2>Active Now</h2>
-                </div>
-                <div id="active-tasks"></div>
-            </div>
-            <div class="card">
-                <div class="card-header">
-                    <span class="icon">📋</span>
-                    <h2>Recent Activity</h2>
-                </div>
-                <div class="activity-list" id="activity-list"></div>
-            </div>
-        </div>
-
-        <div class="card" style="margin-bottom: 24px;">
-            <div class="card-header">
-                <span class="icon">📊</span>
-                <h2>Products</h2>
-            </div>
-            <div class="product-grid" id="products-grid"></div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <span class="icon">⏰</span>
-                <h2>Cron Jobs</h2>
-            </div>
-            <div class="cron-table" id="cron-table"></div>
+        <div class="cards" id="cards-in_progress"></div>
+        <div class="add-card">
+            <button class="add-card-btn" onclick="openAddModal('in_progress')">+ Add task</button>
         </div>
     </div>
 
-    <script>
-        // ============================================
-        // CONFIGURATION — Edit these values
-        // ============================================
-        const CONFIG = {
-            PIN: '111111',  // Change this!
-            SUPABASE_URL: 'https://lyhhfqbkwamodswxewql.supabase.co',  // e.g., https://abc123.supabase.co
-            SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5aGhmcWJrd2Ftb2Rzd3hld3FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNzI5MTgsImV4cCI6MjA5Mzc0ODkxOH0.Q6NxVxTyok58Hag62754kFq-LQEw5O_w0NP5p093j-g'  // anon key (safe for client)
-        };
-        // ============================================
+    <div class="column col-review" data-status="review">
+        <div class="col-header">
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="col-badge"></div>
+                <h2>Review</h2>
+            </div>
+            <span class="col-count" id="count-review">0</span>
+        </div>
+        <div class="cards" id="cards-review"></div>
+        <div class="add-card">
+            <button class="add-card-btn" onclick="openAddModal('review')">+ Add task</button>
+        </div>
+    </div>
 
-        let sbClient;
-        let channel;
-        let lastUpdateTime = null;
-        let updateTickerInterval;
+    <div class="column col-blocked" data-status="blocked">
+        <div class="col-header">
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="col-badge"></div>
+                <h2>Blocked</h2>
+            </div>
+            <span class="col-count" id="count-blocked">0</span>
+        </div>
+        <div class="cards" id="cards-blocked"></div>
+        <div class="add-card">
+            <button class="add-card-btn" onclick="openAddModal('blocked')">+ Add task</button>
+        </div>
+    </div>
 
-        function checkPassword() {
-            const input = document.getElementById('pin-input').value;
-            if (input === CONFIG.PIN) {
-                document.getElementById('password-overlay').style.display = 'none';
-                document.getElementById('main-content').style.display = 'block';
-                sessionStorage.setItem('mc_authenticated', 'true');
-                initSupabase();
-            } else {
-                document.getElementById('password-error').style.display = 'block';
-                document.getElementById('pin-input').value = '';
-                document.getElementById('pin-input').focus();
-            }
-        }
+    <div class="column col-done" data-status="done">
+        <div class="col-header">
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="col-badge"></div>
+                <h2>Done</h2>
+            </div>
+            <span class="col-count" id="count-done">0</span>
+        </div>
+        <div class="cards" id="cards-done"></div>
+        <div class="add-card">
+            <button class="add-card-btn" onclick="openAddModal('done')">+ Add task</button>
+        </div>
+    </div>
+</div>
 
-        document.getElementById('pin-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') checkPassword();
+<div class="updated-at">Updated: <span id="updated-time">—</span></div>
+
+<!-- Add / Edit Modal -->
+<div class="modal-overlay" id="modal-overlay" hidden onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+        <h3 id="modal-title">Add Task</h3>
+        <input type="hidden" id="task-id">
+        <div class="form-group">
+            <label>Title *</label>
+            <input type="text" id="task-title" placeholder="What needs to be done?">
+        </div>
+        <div class="form-group">
+            <label>Description</label>
+            <textarea id="task-desc" placeholder="Details, context, links..."></textarea>
+        </div>
+        <div style="display:flex;gap:12px">
+            <div class="form-group" style="flex:1">
+                <label>Priority</label>
+                <select id="task-priority">
+                    <option value="high">🔴 High</option>
+                    <option value="medium" selected>🟡 Medium</option>
+                    <option value="low">🟢 Low</option>
+                </select>
+            </div>
+            <div class="form-group" style="flex:1">
+                <label>Assignee</label>
+                <select id="task-assignee">
+                    <option value="zeanna" selected>🤖 Zeanna</option>
+                    <option value="ganz">👤 Ganz</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group" id="status-group">
+            <label>Status</label>
+            <select id="task-status">
+                <option value="backlog">Backlog</option>
+                <option value="in_progress">In Progress</option>
+                <option value="review">Review</option>
+                <option value="blocked">Blocked</option>
+                <option value="done">Done</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-danger" id="delete-btn" onclick="deleteTask()" hidden>Delete</button>
+            <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveTask()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detail-overlay" hidden onclick="if(event.target===this)closeDetail()">
+    <div class="modal">
+        <h3 id="detail-title">Task</h3>
+        <div id="detail-body"></div>
+        <div class="comments-section">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:10px">COMMENTS</div>
+            <div id="detail-comments"></div>
+            <div class="comment-input-wrap">
+                <input type="text" id="comment-input" placeholder="Add a comment..." onkeydown="if(event.key==='Enter')addComment()">
+                <button onclick="addComment()">Post</button>
+            </div>
+        </div>
+        <div class="modal-actions" style="margin-top:16px">
+            <button class="btn btn-secondary" onclick="closeDetail()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const SB_URL = 'https://lyhhfqbkwamodswxewql.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5aGhmcWJrd2Ftb2Rzd3hld3FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNzI5MTgsImV4cCI6MjA5Mzc0ODkxOH0.Q6NxVxTyok58Hag62754kFq-LQEw5O_w0NP5p093j-g';
+const sb = window.supabase.createClient(SB_URL, SB_KEY);
+const STATUSES = ['backlog','in_progress','review','blocked','done'];
+let tasks = [];
+let currentDetailId = null;
+let currentDetailComments = [];
+
+function timeAgo(date) {
+    const diff = Date.now() - new Date(date).getTime();
+    const m = Math.floor(diff/60000);
+    if(m<1) return 'just now';
+    if(m<60) return `${m}m ago`;
+    const h = Math.floor(m/60);
+    if(h<24) return `${h}h ago`;
+    return `${Math.floor(h/24)}d ago`;
+}
+
+function renderTasks() {
+    tasks.forEach(t => {
+        document.getElementById(`count-${t.status}`).textContent = tasks.filter(x=>x.status===t.status).length;
+    });
+    STATUSES.forEach(s => {
+        const el = document.getElementById(`cards-${s}`);
+        el.innerHTML = '';
+        tasks.filter(t=>t.status===s).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)).forEach(t => {
+            el.innerHTML += cardHTML(t);
         });
+    });
+    initSortable();
+    document.getElementById('updated-time').textContent = new Date().toLocaleTimeString();
+}
 
-        if (sessionStorage.getItem('mc_authenticated') === 'true') {
-            document.getElementById('password-overlay').style.display = 'none';
-            document.getElementById('main-content').style.display = 'block';
-            initSupabase();
-        }
+function cardHTML(t) {
+    return `<div class="card" data-id="${t.id}" onclick="openDetail('${t.id}')">
+        <div class="card-top">
+            <span class="priority ${t.priority}">${t.priority}</span>
+            <span class="card-id">#${t.id.slice(0,6)}</span>
+        </div>
+        <div class="card-title">${escape(t.title)}</div>
+        ${t.description ? `<div class="card-desc">${escape(t.description)}</div>` : ''}
+        <div class="card-footer">
+            <span>${timeAgo(t.created_at)}</span>
+            <span class="comment-count" onclick="event.stopPropagation();openDetail('${t.id}')">💬 ${(t.comment_count||0)}</span>
+        </div>
+    </div>`;
+}
 
-        function setConnectionStatus(status) {
-            const el = document.getElementById('connection-status');
-            const textEl = document.getElementById('connection-text');
-            el.classList.remove('live', 'disconnected', 'connecting');
-            if (status === 'live') { el.classList.add('live'); textEl.textContent = 'Live'; }
-            else if (status === 'disconnected') { el.classList.add('disconnected'); textEl.textContent = 'Disconnected'; }
-            else { el.classList.add('connecting'); textEl.textContent = 'Connecting...'; }
-        }
+function escape(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-        function updateLastUpdatedTicker() {
-            if (!lastUpdateTime) return;
-            const now = new Date();
-            const diffSecs = Math.floor((now - lastUpdateTime) / 1000);
-            let text;
-            if (diffSecs < 5) text = 'Just now';
-            else if (diffSecs < 60) text = `${diffSecs}s ago`;
-            else if (diffSecs < 3600) text = `${Math.floor(diffSecs / 60)}m ago`;
-            else text = `${Math.floor(diffSecs / 3600)}h ago`;
-            document.getElementById('last-updated-text').textContent = `Updated ${text}`;
-        }
-
-        async function fetchFromSupabase() {
-            const { data, error } = await sbClient
-                .from('dashboard_state')
-                .select('data, updated_at')
-                .eq('id', 'main')
-                .single();
-
-            if (error) {
-                console.error('Failed to fetch data:', error);
-                return null;
+function initSortable() {
+    STATUSES.forEach(s => {
+        const el = document.getElementById(`cards-${s}`);
+        if(el._sortable) el._sortable.destroy();
+        el._sortable = new Sortable(el, {
+            group: 'tasks', animation: 150,
+            onEnd: async (evt) => {
+                const id = evt.item.dataset.id;
+                const newStatus = evt.to.id.replace('cards-','');
+                await sb.from('tasks').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', id);
+                const t = tasks.find(x=>x.id===id);
+                if(t) { t.status = newStatus; renderTasks(); }
             }
+        });
+    });
+}
 
-            if (data) {
-                lastUpdateTime = new Date(data.updated_at);
-                renderDashboard(data.data);
-                document.getElementById('main-content').classList.add('flash-update');
-                setTimeout(() => document.getElementById('main-content').classList.remove('flash-update'), 1000);
-            }
-            return data;
-        }
+async function openAddModal(status) {
+    document.getElementById('modal-title').textContent = 'Add Task';
+    document.getElementById('task-id').value = '';
+    document.getElementById('task-title').value = '';
+    document.getElementById('task-desc').value = '';
+    document.getElementById('task-priority').value = 'medium';
+    document.getElementById('task-assignee').value = 'zeanna';
+    document.getElementById('task-status').value = status;
+    document.getElementById('status-group').hidden = false;
+    document.getElementById('delete-btn').hidden = true;
+    document.getElementById('modal-overlay').hidden = false;
+}
 
-        async function forceUpdate() {
-            const btn = document.getElementById('refresh-btn');
-            btn.classList.add('loading');
-            await fetchFromSupabase();
-            setTimeout(() => btn.classList.remove('loading'), 500);
-        }
+async function openDetail(id) {
+    currentDetailId = id;
+    const t = tasks.find(x=>x.id===id);
+    if(!t) return;
+    document.getElementById('detail-title').textContent = t.title;
+    document.getElementById('detail-body').innerHTML = `
+        <div style="margin-bottom:16px">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">STATUS</div>
+            <span class="priority ${t.priority}" style="margin-right:8px">${t.priority}</span>
+            <span style="font-size:13px">${t.status.replace('_',' ')}</span>
+        </div>
+        ${t.description ? `<div style="margin-bottom:16px">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">DESCRIPTION</div>
+            <div style="font-size:13px;line-height:1.6">${escape(t.description).replace(/\n/g,'<br>')}</div>
+        </div>` : ''}
+        <div style="font-size:12px;color:var(--muted)">
+            Assigned to: ${t.assignee} · Created ${timeAgo(t.created_at)}
+        </div>
+    `;
+    // load comments
+    const { data: comments } = await sb.from('task_comments').select('*').eq('task_id', id).order('created_at');
+    currentDetailComments = comments || [];
+    renderComments();
+    document.getElementById('detail-overlay').hidden = false;
+}
 
-        async function initSupabase() {
-            setConnectionStatus('connecting');
-            sbClient = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+function renderComments() {
+    document.getElementById('detail-comments').innerHTML = currentDetailComments.length === 0
+        ? '<div style="font-size:12px;color:var(--muted)">No comments yet</div>'
+        : currentDetailComments.map(c => `
+            <div class="comment">
+                <div class="comment-header">
+                    <span class="comment-author">${escape(c.author)}</span>
+                    <span class="comment-time">${timeAgo(c.created_at)}</span>
+                </div>
+                <div class="comment-body">${escape(c.content)}</div>
+            </div>`).join('');
+}
 
-            await fetchFromSupabase();
+async function addComment() {
+    const input = document.getElementById('comment-input');
+    const content = input.value.trim();
+    if(!content || !currentDetailId) return;
+    const { data } = await sb.from('task_comments').insert({ task_id: currentDetailId, author: 'Ganz', content }).select().single();
+    if(data) { currentDetailComments.push(data); renderComments(); input.value = ''; }
+}
 
-            updateLastUpdatedTicker();
-            updateTickerInterval = setInterval(updateLastUpdatedTicker, 1000);
+function closeModal() { document.getElementById('modal-overlay').hidden = true; }
+function closeDetail() { document.getElementById('detail-overlay').hidden = true; currentDetailId = null; }
 
-            channel = sbClient
-                .channel('dashboard-realtime')
-                .on('postgres_changes',
-                    { event: 'UPDATE', schema: 'public', table: 'dashboard_state', filter: 'id=eq.main' },
-                    (payload) => {
-                        console.log('Realtime update received:', payload);
-                        lastUpdateTime = new Date(payload.new.updated_at);
-                        renderDashboard(payload.new.data);
-                        document.getElementById('main-content').classList.add('flash-update');
-                        setTimeout(() => document.getElementById('main-content').classList.remove('flash-update'), 1000);
-                    }
-                )
-                .subscribe((status) => {
-                    console.log('Realtime subscription status:', status);
-                    if (status === 'SUBSCRIBED') setConnectionStatus('live');
-                    else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-                        setConnectionStatus('disconnected');
-                        setTimeout(() => { console.log('Attempting to reconnect...'); channel.subscribe(); }, 5000);
-                    }
-                });
-        }
+async function saveTask() {
+    const title = document.getElementById('task-title').value.trim();
+    if(!title) return alert('Title required');
+    const id = document.getElementById('task-id').value;
+    const payload = {
+        title, description: document.getElementById('task-desc').value.trim(),
+        priority: document.getElementById('task-priority').value,
+        assignee: document.getElementById('task-assignee').value,
+        status: document.getElementById('task-status').value,
+        updated_at: new Date().toISOString()
+    };
+    if(id) {
+        await sb.from('tasks').update(payload).eq('id', id);
+    } else {
+        await sb.from('tasks').insert(payload);
+    }
+    closeModal();
+    loadTasks();
+}
 
-        function renderDashboard(data) {
-            const now = new Date();
+async function deleteTask() {
+    if(!confirm('Delete this task?')) return;
+    const id = document.getElementById('task-id').value;
+    await sb.from('tasks').delete().eq('id', id);
+    closeModal();
+    loadTasks();
+}
 
-            // Action Required
-            const actionBanner = document.getElementById('action-required');
-            const actionItems = document.getElementById('action-items');
-            if (data.actionRequired && data.actionRequired.length > 0) {
-                actionBanner.classList.remove('empty');
-                actionItems.innerHTML = data.actionRequired.map(item => `
-                    <div class="alert-item">
-                        <div class="alert-item-content">
-                            <span class="priority ${item.priority}">${item.priority}</span>
-                            <span>${escapeHtml(item.title)}</span>
-                        </div>
-                        ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">Open →</a>` : ''}
-                    </div>
-                `).join('');
-            } else {
-                actionBanner.classList.add('empty');
-            }
+async function loadTasks() {
+    // Fetch tasks with comment counts
+    const { data } = await sb.from('tasks').select('*, task_comments(count)').order('sort_order');
+    tasks = (data || []).map(t => ({ ...t, comment_count: t.task_comments?.[0]?.count || 0 }));
+    renderTasks();
+}
 
-            // Stats Row
-            const statsRow = document.getElementById('stats-row');
-            const enabledCrons = data.crons?.filter(c => c.status !== 'paused').length || 0;
-            const pausedCrons = data.crons?.filter(c => c.status === 'paused').length || 0;
-            const errorCrons = data.crons?.filter(c => c.errors > 0).length || 0;
-            statsRow.innerHTML = `
-                <div class="stat-pill"><span class="num">${data.products?.length || 0}</span><span class="label">Products</span></div>
-                <div class="stat-pill"><span class="num">${enabledCrons}</span><span class="label">Active Crons</span></div>
-                <div class="stat-pill"><span class="num">${pausedCrons}</span><span class="label">Paused</span></div>
-                ${errorCrons > 0 ? `<div class="stat-pill" style="border-color:var(--accent-red);"><span class="num" style="color:var(--accent-red);">${errorCrons}</span><span class="label">Errors</span></div>` : ''}
-            `;
+// Initial load
+loadTasks();
 
-            // Active Now
-            const activeTasks = document.getElementById('active-tasks');
-            if (data.activeNow && data.activeNow.length > 0) {
-                activeTasks.innerHTML = data.activeNow.map(task => {
-                    const started = new Date(task.startedAt);
-                    const mins = Math.floor((now - started) / 60000);
-                    return `
-                        <div class="active-task">
-                            <div class="active-indicator"></div>
-                            <div class="active-task-info">
-                                <div class="active-task-name">${escapeHtml(task.task)}</div>
-                                <div class="active-task-meta">${escapeHtml(task.model || '')} · ${mins}m</div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                activeTasks.innerHTML = '<div class="empty-state">✨ All quiet — no active tasks</div>';
-            }
-
-            // Products
-            const productsGrid = document.getElementById('products-grid');
-            if (data.products && data.products.length > 0) {
-                productsGrid.innerHTML = data.products.map(product => `
-                    <a href="${escapeHtml(product.url)}" target="_blank" rel="noopener" class="product-card">
-                        <div class="product-name">${escapeHtml(product.name)}</div>
-                        <div class="product-status ${product.status}">
-                            <span class="dot"></span>
-                            ${product.status.charAt(0).toUpperCase() + product.status.slice(1)}
-                        </div>
-                        <div class="product-checked">Checked ${formatTime(product.lastChecked)}</div>
-                    </a>
-                `).join('');
-            } else {
-                productsGrid.innerHTML = '<div class="empty-state">No products configured</div>';
-            }
-
-            // Cron Jobs
-            const cronTable = document.getElementById('cron-table');
-            if (data.crons && data.crons.length > 0) {
-                const sortedCrons = [...data.crons].sort((a, b) => {
-                    if (a.errors > 0 && b.errors === 0) return -1;
-                    if (b.errors > 0 && a.errors === 0) return 1;
-                    if (a.status === 'paused' && b.status !== 'paused') return 1;
-                    if (b.status === 'paused' && a.status !== 'paused') return -1;
-                    return 0;
-                });
-                cronTable.innerHTML = sortedCrons.map(cron => {
-                    const statusIcon = cron.status === 'ok' ? '✅' : cron.status === 'error' ? '❌' : cron.status === 'paused' ? '⏸️' : '⚪';
-                    return `
-                        <div class="cron-row ${cron.errors > 0 ? 'has-error' : ''}" onclick="this.classList.toggle('expanded')">
-                            <div>
-                                <div class="cron-name">${escapeHtml(cron.name)}</div>
-                                <div class="cron-schedule">${escapeHtml(cron.schedule)}</div>
-                            </div>
-                            <div class="cron-status">${statusIcon}</div>
-                            ${cron.errors > 0 ? `<div class="cron-errors">${cron.errors} errors</div>` : ''}
-                            ${cron.lastError ? `<div class="cron-error-detail">${escapeHtml(cron.lastError)}</div>` : ''}
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                cronTable.innerHTML = '<div class="empty-state">No cron jobs configured</div>';
-            }
-
-            // Recent Activity
-            const activityList = document.getElementById('activity-list');
-            if (data.recentActivity && data.recentActivity.length > 0) {
-                activityList.innerHTML = data.recentActivity.slice(0, 10).map(activity => {
-                    const time = new Date(activity.time);
-                    const hours = time.getHours().toString().padStart(2, '0');
-                    const mins = time.getMinutes().toString().padStart(2, '0');
-                    return `
-                        <div class="activity-item">
-                            <div class="activity-time">${hours}:${mins}</div>
-                            <div class="activity-event">${escapeHtml(activity.event)}</div>
-                        </div>
-                    `;
-                }).join('');
-            } else {
-                activityList.innerHTML = '<div class="empty-state">No recent activity</div>';
-            }
-        }
-
-        function formatTime(isoString) {
-            if (!isoString) return 'never';
-            const date = new Date(isoString);
-            const now = new Date();
-            const diffMins = Math.floor((now - date) / 60000);
-            if (diffMins < 1) return 'just now';
-            if (diffMins < 60) return `${diffMins}m ago`;
-            if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
-            return date.toLocaleDateString();
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
-        }
-    </script>
+// Realtime subscription
+sb.channel('tasks').on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, loadTasks)
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'task_comments' }, () => { if(currentDetailId) openDetail(currentDetailId); })
+  .subscribe();
+</script>
 </body>
 </html>
