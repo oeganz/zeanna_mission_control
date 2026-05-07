@@ -40,6 +40,7 @@
         .col-backlog .col-badge { background: var(--backlog); }
         .col-in_progress .col-badge { background: var(--in-progress); }
         .col-review .col-badge { background: var(--review); }
+        .col-to_do .col-badge { background: var(--in-progress); }
         .col-blocked .col-badge { background: var(--blocked); }
         .col-done .col-badge { background: var(--done); }
         .cards { padding: 12px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-height: 100px; }
@@ -120,6 +121,21 @@
         <div class="cards" id="cards-in_progress"></div>
         <div class="add-card">
             <button class="add-card-btn" onclick="openAddModal('in_progress')">+ Add task</button>
+        </div>
+    </div>
+
+
+    <div class="column col-to_do" data-status="to_do">
+        <div class="col-header">
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="col-badge" style="background:var(--in-progress)"></div>
+                <h2>To Do</h2>
+            </div>
+            <span class="col-count" id="count-to_do">0</span>
+        </div>
+        <div class="cards" id="cards-to_do"></div>
+        <div class="add-card">
+            <button class="add-card-btn" onclick="openAddModal('to_do')">+ Add task</button>
         </div>
     </div>
 
@@ -239,7 +255,7 @@
 const SB_URL = 'https://lyhhfqbkwamodswxewql.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5aGhmcWJrd2Ftb2Rzd3hld3FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNzI5MTgsImV4cCI6MjA5Mzc0ODkxOH0.Q6NxVxTyok58Hag62754kFq-LQEw5O_w0NP5p093j-g';
 const sb = window.supabase.createClient(SB_URL, SB_KEY);
-const STATUSES = ['backlog','in_progress','review','blocked','done'];
+const STATUSES = ['backlog','in_progress','to_do','review','blocked','done'];
 let tasks = [];
 let currentDetailId = null;
 let currentDetailComments = [];
