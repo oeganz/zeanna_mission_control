@@ -38,20 +38,20 @@
         .col-count { background: var(--bg); padding: 2px 8px; border-radius: 10px; font-size: 11px; color: var(--muted); }
         .col-badge { width: 8px; height: 8px; border-radius: 50%; }
         .col-backlog .col-badge { background: var(--backlog); }
+        .col-to_do .col-badge { background: var(--in-progress); }
         .col-in_progress .col-badge { background: var(--in-progress); }
         .col-review .col-badge { background: var(--review); }
-        .col-to_do .col-badge { background: var(--in-progress); }
         .col-blocked .col-badge { background: var(--blocked); }
         .col-done .col-badge { background: var(--done); }
         .cards { padding: 12px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-height: 100px; }
         .card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; cursor: grab; transition: border-color 0.15s; }
-        .card:hover { border-color: var(--border-light, #3f3f46); }
+        .card:hover { border-color: #3f3f46; }
         .card.dragging { opacity: 0.5; }
         .card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
         .priority { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
         .priority.high { background: rgba(239,68,68,0.2); color: var(--high); }
         .priority.medium { background: rgba(249,115,22,0.2); color: var(--medium); }
-        .priority.low { background: rgba(34,197,00,0.2); color: var(--low); }
+        .priority.low { background: rgba(34,197,0,0.2); color: var(--low); }
         .card-id { font-size: 10px; color: var(--muted); }
         .card-title { font-size: 13px; font-weight: 500; line-height: 1.4; margin-bottom: 6px; }
         .card-desc { font-size: 12px; color: var(--muted); line-height: 1.4; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -95,7 +95,11 @@
     <div class="live-dot"><span></span> <span id="live-label">Live</span></div>
 </header>
 
-
+<div class="board">
+    <div class="column col-backlog" data-status="backlog">
+        <div class="col-header">
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="col-badge"></div>
                 <h2>Backlog</h2>
             </div>
             <span class="col-count" id="count-backlog">0</span>
@@ -103,6 +107,20 @@
         <div class="cards" id="cards-backlog"></div>
         <div class="add-card">
             <button class="add-card-btn" onclick="openAddModal('backlog')">+ Add task</button>
+        </div>
+    </div>
+
+    <div class="column col-to_do" data-status="to_do">
+        <div class="col-header">
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="col-badge"></div>
+                <h2>To Do</h2>
+            </div>
+            <span class="col-count" id="count-to_do">0</span>
+        </div>
+        <div class="cards" id="cards-to_do"></div>
+        <div class="add-card">
+            <button class="add-card-btn" onclick="openAddModal('to_do')">+ Add task</button>
         </div>
     </div>
 
@@ -117,21 +135,6 @@
         <div class="cards" id="cards-in_progress"></div>
         <div class="add-card">
             <button class="add-card-btn" onclick="openAddModal('in_progress')">+ Add task</button>
-        </div>
-    </div>
-
-
-    <div class="column col-to_do" data-status="to_do">
-        <div class="col-header">
-            <div style="display:flex;align-items:center;gap:8px">
-                <div class="col-badge" style="background:var(--in-progress)"></div>
-                <h2>To Do</h2>
-            </div>
-            <span class="col-count" id="count-to_do">0</span>
-        </div>
-        <div class="cards" id="cards-to_do"></div>
-        <div class="add-card">
-            <button class="add-card-btn" onclick="openAddModal('to_do')">+ Add task</button>
         </div>
     </div>
 
@@ -178,92 +181,6 @@
     </div>
 </div>
 
-
-<div class="board"><div class="column col-backlog" data-status="backlog">
-        <div class="col-header">
-            <div style="display:flex;align-items:center;gap:8px">
-                <div class="col-badge"></div>
-                <h2>Backlog</h2>
-            </div>
-            <span class="col-count" id="count-backlog">0</span>
-        </div>
-        <div class="cards" id="cards-backlog"></div>
-        <div class="add-card">
-            <button class="add-card-btn" onclick="openAddModal('backlog')">+ Add task</button>
-        </div>
-    </div>
-
-<div class="column col-to_do" data-status="to_do">
-        <div class="col-header">
-            <div style="display:flex;align-items:center;gap:8px">
-                <div class="col-badge" style="background:var(--in-progress)"></div>
-                <h2>To Do</h2>
-            </div>
-            <span class="col-count" id="count-to_do">0</span>
-        </div>
-        <div class="cards" id="cards-to_do"></div>
-        <div class="add-card">
-            <button class="add-card-btn" onclick="openAddModal('to_do')">+ Add task</button>
-        </div>
-    </div>
-
-<div class="column col-in_progress" data-status="in_progress">
-        <div class="col-header">
-            <div style="display:flex;align-items:center;gap:8px">
-                <div class="col-badge"></div>
-                <h2>In Progress</h2>
-            </div>
-            <span class="col-count" id="count-in_progress">0</span>
-        </div>
-        <div class="cards" id="cards-in_progress"></div>
-        <div class="add-card">
-            <button class="add-card-btn" onclick="openAddModal('in_progress')">+ Add task</button>
-        </div>
-    </div>
-
-<div class="column col-review" data-status="review">
-        <div class="col-header">
-            <div style="display:flex;align-items:center;gap:8px">
-                <div class="col-badge"></div>
-                <h2>Review</h2>
-            </div>
-            <span class="col-count" id="count-review">0</span>
-        </div>
-        <div class="cards" id="cards-review"></div>
-        <div class="add-card">
-            <button class="add-card-btn" onclick="openAddModal('review')">+ Add task</button>
-        </div>
-    </div>
-
-<div class="column col-blocked" data-status="blocked">
-        <div class="col-header">
-            <div style="display:flex;align-items:center;gap:8px">
-                <div class="col-badge"></div>
-                <h2>Blocked</h2>
-            </div>
-            <span class="col-count" id="count-blocked">0</span>
-        </div>
-        <div class="cards" id="cards-blocked"></div>
-        <div class="add-card">
-            <button class="add-card-btn" onclick="openAddModal('blocked')">+ Add task</button>
-        </div>
-    </div>
-
-<div class="column col-done" data-status="done">
-        <div class="col-header">
-            <div style="display:flex;align-items:center;gap:8px">
-                <div class="col-badge"></div>
-                <h2>Done</h2>
-            </div>
-            <span class="col-count" id="count-done">0</span>
-        </div>
-        <div class="cards" id="cards-done"></div>
-        <div class="add-card">
-            <button class="add-card-btn" onclick="openAddModal('done')">+ Add task</button>
-        </div>
-    </div>
-
-</div>
 <div class="updated-at">Updated: <span id="updated-time">—</span></div>
 
 <!-- Add / Edit Modal -->
@@ -300,6 +217,7 @@
             <label>Status</label>
             <select id="task-status">
                 <option value="backlog">Backlog</option>
+                <option value="to_do">To Do</option>
                 <option value="in_progress">In Progress</option>
                 <option value="review">Review</option>
                 <option value="blocked">Blocked</option>
@@ -346,18 +264,19 @@ function timeAgo(date) {
     const diff = Date.now() - new Date(date).getTime();
     const m = Math.floor(diff/60000);
     if(m<1) return 'just now';
-    if(m<60) return `${m}m ago`;
+    if(m<60) return m+'m ago';
     const h = Math.floor(m/60);
-    if(h<24) return `${h}h ago`;
-    return `${Math.floor(h/24)}d ago`;
+    if(h<24) return h+'h ago';
+    return Math.floor(h/24)+'d ago';
 }
 
 function renderTasks() {
-    tasks.forEach(t => {
-        document.getElementById(`count-${t.status}`).textContent = tasks.filter(x=>x.status===t.status).length;
+    STATUSES.forEach(s => {
+        const count = tasks.filter(t=>t.status===s).length;
+        document.getElementById('count-'+s).textContent = count;
     });
     STATUSES.forEach(s => {
-        const el = document.getElementById(`cards-${s}`);
+        const el = document.getElementById('cards-'+s);
         el.innerHTML = '';
         tasks.filter(t=>t.status===s).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0)).forEach(t => {
             el.innerHTML += cardHTML(t);
@@ -368,25 +287,19 @@ function renderTasks() {
 }
 
 function cardHTML(t) {
-    return `<div class="card" data-id="${t.id}" onclick="openDetail('${t.id}')">
-        <div class="card-top">
-            <span class="priority ${t.priority}">${t.priority}</span>
-            <span class="card-id">#${t.id.slice(0,6)}</span>
-        </div>
-        <div class="card-title">${escape(t.title)}</div>
-        ${t.description ? `<div class="card-desc">${escape(t.description)}</div>` : ''}
-        <div class="card-footer">
-            <span>${timeAgo(t.created_at)}</span>
-            <span class="comment-count" onclick="event.stopPropagation();openDetail('${t.id}')">💬 ${(t.comment_count||0)}</span>
-        </div>
-    </div>`;
+    return '<div class="card" data-id="'+t.id+'" onclick="openDetail(\''+t.id+'\')">'+
+        '<div class="card-top"><span class="priority '+t.priority+'">'+t.priority+'</span><span class="card-id">#'+t.id.slice(0,6)+'</span></div>'+
+        '<div class="card-title">'+escape(t.title)+'</div>'+
+        (t.description ? '<div class="card-desc">'+escape(t.description)+'</div>' : '')+
+        '<div class="card-footer"><span>'+timeAgo(t.created_at)+'</span><span class="comment-count" onclick="event.stopPropagation();openDetail(\''+t.id+'\')">💬 '+(t.comment_count||0)+'</span></div>'+
+        '</div>';
 }
 
 function escape(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function initSortable() {
     STATUSES.forEach(s => {
-        const el = document.getElementById(`cards-${s}`);
+        const el = document.getElementById('cards-'+s);
         if(el._sortable) el._sortable.destroy();
         el._sortable = new Sortable(el, {
             group: 'tasks', animation: 150,
@@ -419,21 +332,13 @@ async function openDetail(id) {
     const t = tasks.find(x=>x.id===id);
     if(!t) return;
     document.getElementById('detail-title').textContent = t.title;
-    document.getElementById('detail-body').innerHTML = `
-        <div style="margin-bottom:16px">
-            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">STATUS</div>
-            <span class="priority ${t.priority}" style="margin-right:8px">${t.priority}</span>
-            <span style="font-size:13px">${t.status.replace('_',' ')}</span>
-        </div>
-        ${t.description ? `<div style="margin-bottom:16px">
-            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">DESCRIPTION</div>
-            <div style="font-size:13px;line-height:1.6">${escape(t.description).replace(/\n/g,'<br>')}</div>
-        </div>` : ''}
-        <div style="font-size:12px;color:var(--muted)">
-            Assigned to: ${t.assignee} · Created ${timeAgo(t.created_at)}
-        </div>
-    `;
-    // load comments
+    document.getElementById('detail-body').innerHTML =
+        '<div style="margin-bottom:16px"><div style="font-size:12px;color:var(--muted);margin-bottom:4px">STATUS</div>'+
+        '<span class="priority '+t.priority+'" style="margin-right:8px">'+t.priority+'</span>'+
+        '<span style="font-size:13px">'+t.status.replace('_',' ')+'</span></div>'+
+        (t.description ? '<div style="margin-bottom:16px"><div style="font-size:12px;color:var(--muted);margin-bottom:4px">DESCRIPTION</div>'+
+        '<div style="font-size:13px;line-height:1.6">'+escape(t.description).replace(/\n/g,'<br>')+'</div></div>' : '')+
+        '<div style="font-size:12px;color:var(--muted)">Assigned to: '+t.assignee+' · Created '+timeAgo(t.created_at)+'</div>';
     const { data: comments } = await sb.from('task_comments').select('*').eq('task_id', id).order('created_at');
     currentDetailComments = comments || [];
     renderComments();
@@ -443,14 +348,7 @@ async function openDetail(id) {
 function renderComments() {
     document.getElementById('detail-comments').innerHTML = currentDetailComments.length === 0
         ? '<div style="font-size:12px;color:var(--muted)">No comments yet</div>'
-        : currentDetailComments.map(c => `
-            <div class="comment">
-                <div class="comment-header">
-                    <span class="comment-author">${escape(c.author)}</span>
-                    <span class="comment-time">${timeAgo(c.created_at)}</span>
-                </div>
-                <div class="comment-body">${escape(c.content)}</div>
-            </div>`).join('');
+        : currentDetailComments.map(c => '<div class="comment"><div class="comment-header"><span class="comment-author">'+escape(c.author)+'</span><span class="comment-time">'+timeAgo(c.created_at)+'</span></div><div class="comment-body">'+escape(c.content)+'</div></div>').join('');
 }
 
 async function addComment() {
@@ -493,16 +391,16 @@ async function deleteTask() {
 }
 
 async function loadTasks() {
-    // Fetch tasks with comment counts
-    const { data } = await sb.from('tasks').select('*, task_comments(count)').order('sort_order');
-    tasks = (data || []).map(t => ({ ...t, comment_count: t.task_comments?.[0]?.count || 0 }));
+    const { data } = await sb.from('tasks').select('*').order('sort_order');
+    const { data: comments } = await sb.from('task_comments').select('task_id');
+    const countMap = {};
+    (comments||[]).forEach(c => { countMap[c.task_id] = (countMap[c.task_id]||0) + 1; });
+    tasks = (data||[]).map(t => ({ ...t, comment_count: countMap[t.id]||0 }));
     renderTasks();
 }
 
-// Initial load
 loadTasks();
 
-// Realtime subscription
 sb.channel('tasks').on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, loadTasks)
   .on('postgres_changes', { event: '*', schema: 'public', table: 'task_comments' }, () => { if(currentDetailId) openDetail(currentDetailId); })
   .subscribe();
