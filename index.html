@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mission Control — Tasks</title>
@@ -21,7 +25,6 @@
             --review: #f97316;
             --blocked: #ef4444;
             --done: #22c55e;
-            --soon: #a855f7;
             --high: #ef4444;
             --medium: #f97316;
             --low: #22c55e;
@@ -41,7 +44,7 @@
         .col-backlog .col-badge { background: var(--backlog); }
         .col-to_do .col-badge { background: var(--in-progress); }
         .col-in_progress .col-badge { background: var(--in-progress); }
-        .col-needs_review .col-badge { background: var(--review); }
+        .col-review .col-badge { background: var(--review); }
         .col-blocked .col-badge { background: var(--blocked); }
         .col-done .col-badge { background: var(--done); }
         .cards { padding: 12px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; min-height: 100px; }
@@ -139,7 +142,7 @@
         </div>
     </div>
 
-    <div class="column col-needs_review" data-status="needs_review">
+    <div class="column col-review" data-status="review">
         <div class="col-header">
             <div style="display:flex;align-items:center;gap:8px">
                 <div class="col-badge"></div>
@@ -220,8 +223,7 @@
                 <option value="backlog">Backlog</option>
                 <option value="to_do">To Do</option>
                 <option value="in_progress">In Progress</option>
-                <option value="needs_review">Needs Review</option>
-                <option value="soon">Soon</option>
+                <option value="review">Review</option>
                 <option value="blocked">Blocked</option>
                 <option value="done">Done</option>
             </select>
@@ -257,7 +259,7 @@
 const SB_URL = 'https://lyhhfqbkwamodswxewql.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5aGhmcWJrd2Ftb2Rzd3hld3FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNzI5MTgsImV4cCI6MjA5Mzc0ODkxOH0.Q6NxVxTyok58Hag62754kFq-LQEw5O_w0NP5p093j-g';
 const sb = window.supabase.createClient(SB_URL, SB_KEY);
-const STATUSES = ['backlog','to_do','in_progress','needs_review','blocked','done','soon'];
+const STATUSES = ['backlog','to_do','in_progress','review','blocked','done'];
 let tasks = [];
 let currentDetailId = null;
 let currentDetailComments = [];
