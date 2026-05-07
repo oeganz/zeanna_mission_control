@@ -95,11 +95,7 @@
     <div class="live-dot"><span></span> <span id="live-label">Live</span></div>
 </header>
 
-<div class="board">
-    <div class="column col-backlog" data-status="backlog">
-        <div class="col-header">
-            <div style="display:flex;align-items:center;gap:8px">
-                <div class="col-badge"></div>
+
                 <h2>Backlog</h2>
             </div>
             <span class="col-count" id="count-backlog">0</span>
@@ -182,6 +178,92 @@
     </div>
 </div>
 
+
+<div class="board">
+<div class="column col-backlog" data-status="backlog">
+        <div class="col-header">
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="col-badge"></div>
+                <h2>Backlog</h2>
+            </div>
+            <span class="col-count" id="count-backlog">0</span>
+        </div>
+        <div class="cards" id="cards-backlog"></div>
+        <div class="add-card">
+            <button class="add-card-btn" onclick="openAddModal('backlog')">+ Add task</button>
+        </div>
+    </div>
+
+<div class="column col-to_do" data-status="to_do">
+        <div class="col-header">
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="col-badge" style="background:var(--in-progress)"></div>
+                <h2>To Do</h2>
+            </div>
+            <span class="col-count" id="count-to_do">0</span>
+        </div>
+        <div class="cards" id="cards-to_do"></div>
+        <div class="add-card">
+            <button class="add-card-btn" onclick="openAddModal('to_do')">+ Add task</button>
+        </div>
+    </div>
+
+<div class="column col-in_progress" data-status="in_progress">
+        <div class="col-header">
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="col-badge"></div>
+                <h2>In Progress</h2>
+            </div>
+            <span class="col-count" id="count-in_progress">0</span>
+        </div>
+        <div class="cards" id="cards-in_progress"></div>
+        <div class="add-card">
+            <button class="add-card-btn" onclick="openAddModal('in_progress')">+ Add task</button>
+        </div>
+    </div>
+
+<div class="column col-review" data-status="review">
+        <div class="col-header">
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="col-badge"></div>
+                <h2>Review</h2>
+            </div>
+            <span class="col-count" id="count-review">0</span>
+        </div>
+        <div class="cards" id="cards-review"></div>
+        <div class="add-card">
+            <button class="add-card-btn" onclick="openAddModal('review')">+ Add task</button>
+        </div>
+    </div>
+
+<div class="column col-blocked" data-status="blocked">
+        <div class="col-header">
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="col-badge"></div>
+                <h2>Blocked</h2>
+            </div>
+            <span class="col-count" id="count-blocked">0</span>
+        </div>
+        <div class="cards" id="cards-blocked"></div>
+        <div class="add-card">
+            <button class="add-card-btn" onclick="openAddModal('blocked')">+ Add task</button>
+        </div>
+    </div>
+
+<div class="column col-done" data-status="done">
+        <div class="col-header">
+            <div style="display:flex;align-items:center;gap:8px">
+                <div class="col-badge"></div>
+                <h2>Done</h2>
+            </div>
+            <span class="col-count" id="count-done">0</span>
+        </div>
+        <div class="cards" id="cards-done"></div>
+        <div class="add-card">
+            <button class="add-card-btn" onclick="openAddModal('done')">+ Add task</button>
+        </div>
+    </div>
+</div>
 <div class="updated-at">Updated: <span id="updated-time">—</span></div>
 
 <!-- Add / Edit Modal -->
