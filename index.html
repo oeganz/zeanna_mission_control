@@ -255,7 +255,7 @@
 const SB_URL = 'https://lyhhfqbkwamodswxewql.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5aGhmcWJrd2Ftb2Rzd3hld3FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgxNzI5MTgsImV4cCI6MjA5Mzc0ODkxOH0.Q6NxVxTyok58Hag62754kFq-LQEw5O_w0NP5p093j-g';
 const sb = window.supabase.createClient(SB_URL, SB_KEY);
-const STATUSES = ['backlog','in_progress','to_do','review','blocked','done'];
+const STATUSES = ['backlog','to_do','in_progress','review','blocked','done'];
 let tasks = [];
 let currentDetailId = null;
 let currentDetailComments = [];
